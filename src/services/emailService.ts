@@ -2,22 +2,22 @@ import Imap from "node-imap";
 import { simpleParser } from "mailparser";
 import dotenv from "dotenv";
 
-const imapuser: string = process.env.IMAP_USER || ("" as string);
-const imappassword: string = process.env.IMAP_PASSWORD || ("" as string);
-
 dotenv.config();
+const imapuser = process.env.IMAP_USER;
+const imaphost = process.env.IMAP_HOST;
+const imappass = process.env.IMAP_PASSWORD;
 
 export const fetchEmails = async () => {
   const imap = new Imap({
-    user: 'updates@connectmazjid.com',
-    password: 'C0nn3ctM@zj!d',
-    host: 'imap.titan.email',
+    user: imapuser as string, 
+    password: imappass as string, 
+    host: imaphost, 
     port: parseInt(process.env.IMAP_PORT || "993"),
     tls: true,
-    authTimeout: 30000, 
+    authTimeout: 30000,
     connTimeout: 30000,
-    tlsOptions: { rejectUnauthorized: false }, 
-    debug: console.log, 
+    tlsOptions: { rejectUnauthorized: false },
+    debug: console.log,
   });
 
   const openInbox = (cb: any) => {
@@ -38,7 +38,9 @@ export const fetchEmails = async () => {
               console.error("Error parsing email: ", err);
               return;
             }
-            console.log(parsed.subject);
+            console.log(`${prefix}Subject: ${parsed.subject}`);
+            console.log(`${prefix}Text: ${parsed.text}`);
+            console.log(`${prefix}HTML: ${parsed.html}`);
           });
         });
       });
