@@ -19,7 +19,7 @@ export const fetchEmails = async () => {
     authTimeout: 30000,
     connTimeout: 30000,
     tlsOptions: { rejectUnauthorized: false },
-    debug: console.log,
+    //debug: console.log,
   });
 
   const openInbox = (cb: any) => {

@@ -5,21 +5,8 @@ import { getEmails } from "./controllers/emailController";
 const app = express();
 const port = 3000;
 
-// IMAP configuration
-const config = {
-  imap: {
-    user: "updates@connectmazjid.com",
-    password: "C0nn3ctM@zj!d",
-    host: "imap.titan.email",
-    port: 993,
-    tls: true,
-    authTimeout: 20000,
-    connectionTimeout: 10000,
-    tlsOptions: {
-      rejectUnauthorized: false,
-    },
-  },
-};
+
+
 
 app.get("/fetch-emails", async (req, res) => {
   // try {
