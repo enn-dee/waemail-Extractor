@@ -2,15 +2,22 @@ import Imap from "node-imap";
 import { simpleParser } from "mailparser";
 import dotenv from "dotenv";
 
+const imapuser: string = process.env.IMAP_USER || ("" as string);
+const imappassword: string = process.env.IMAP_PASSWORD || ("" as string);
+
 dotenv.config();
 
 export const fetchEmails = async () => {
   const imap = new Imap({
-    user: process.env.IMAP_USER,
-    password: process.env.IMAP_PASSWORD,
-    host: process.env.IMAP_HOST,
+    user: 'updates@connectmazjid.com',
+    password: 'C0nn3ctM@zj!d',
+    host: 'imap.titan.email',
     port: parseInt(process.env.IMAP_PORT || "993"),
     tls: true,
+    authTimeout: 30000, 
+    connTimeout: 30000,
+    tlsOptions: { rejectUnauthorized: false }, 
+    debug: console.log, 
   });
 
   const openInbox = (cb: any) => {
