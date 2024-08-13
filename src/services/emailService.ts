@@ -1,17 +1,19 @@
 import Imap from "node-imap";
 import { simpleParser } from "mailparser";
 import dotenv from "dotenv";
+import dayjs from "dayjs";
 
 dotenv.config();
+
 const imapuser = process.env.IMAP_USER;
 const imaphost = process.env.IMAP_HOST;
 const imappass = process.env.IMAP_PASSWORD;
 
 export const fetchEmails = async () => {
   const imap = new Imap({
-    user: imapuser as string, 
-    password: imappass as string, 
-    host: imaphost, 
+    user: imapuser as string,
+    password: imappass as string,
+    host: imaphost as string,
     port: parseInt(process.env.IMAP_PORT || "993"),
     tls: true,
     authTimeout: 30000,
@@ -27,26 +29,56 @@ export const fetchEmails = async () => {
   imap.once("ready", function () {
     openInbox(function (err: any, box: any) {
       if (err) throw err;
-      const f = imap.seq.fetch("1:10", {
-        bodies: "",
-      });
-      f.on("message", function (msg: any, seqno: any) {
-        const prefix = "(#" + seqno + ") ";
-        msg.on("body", function (stream: any, info: any) {
-          simpleParser(stream, (err: any, parsed: any) => {
-            if (err) {
-              console.error("Error parsing email: ", err);
-              return;
-            }
-            console.log(`${prefix}Subject: ${parsed.subject}`);
-            console.log(`${prefix}Text: ${parsed.text}`);
-            console.log(`${prefix}HTML: ${parsed.html}`);
+
+      //will fetch mails of preivous 2 days
+      const fiveDaysAgo = dayjs().subtract(2, "day").toDate();
+
+      imap.search(
+        ["ALL", ["SINCE", dayjs().subtract(1, "day").format("DD-MMM-YYYY")]],
+        function (err: any, results: any) {
+          if (err) {
+            console.error("Search Error: ", err);
+            return;
+          }
+
+          if (results.length === 0) {
+            console.log("No emails found.");
+            imap.end();
+            return;
+          }
+
+          const f = imap.fetch(results, {
+            bodies: "",
           });
-        });
-      });
-      f.once("end", function () {
-        imap.end();
-      });
+
+          f.on("message", function (msg: any, seqno: any) {
+            const prefix = "(#" + seqno + ") ";
+            msg.on("body", function (stream: any, info: any) {
+              simpleParser(stream, (err: any, parsed: any) => {
+                if (err) {
+                  console.error("Error parsing email: ", err);
+                  return;
+                }
+
+                const subjectLower = (parsed.subject || "").toLowerCase();
+                if (
+                  subjectLower.includes("adhan") ||
+                  subjectLower.includes("prayer")
+                ) {
+                  console.log(`${prefix}Text: ${parsed.text}`);
+                  
+                  // console.log(`${prefix}HTML: ${parsed.html}`);
+                }
+                console.log(`${prefix}Subject: ${parsed.subject}`);
+              });
+            });
+          });
+
+          f.once("end", function () {
+            imap.end();
+          });
+        }
+      );
     });
   });
 
