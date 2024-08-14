@@ -2,10 +2,7 @@ import express, { Request, Response } from "express";
 import imaps from "imap-simple";
 import { getEmails } from "./controllers/emailController";
 import { startWhatsApp } from "./controllers/whatsappController";
-import {
-  sendWhatsappMessage,
-  showMessages,
-} from "./services/whatsappService";
+import { sendWhatsappMessage, showMessages } from "./services/whatsappService";
 
 const app = express();
 const port = 3000;

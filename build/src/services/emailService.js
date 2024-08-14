@@ -32,7 +32,7 @@ const fetchEmails = async () => {
             if (err)
                 throw err;
             //will fetch mails of preivous 2 days
-            const fiveDaysAgo = (0, dayjs_1.default)().subtract(2, "day").toDate();
+            // const DaysAgo = dayjs().subtract(2, "day").toDate();
             imap.search(["ALL", ["SINCE", (0, dayjs_1.default)().subtract(2, "day").format("DD-MMM-YYYY")]], function (err, results) {
                 if (err) {
                     console.error("Search Error: ", err);
@@ -55,12 +55,10 @@ const fetchEmails = async () => {
                                 return;
                             }
                             const subjectLower = (parsed.subject || "").toLowerCase();
-                            if (subjectLower.includes("adhan") ||
-                                subjectLower.includes("prayer")) {
-                                console.log(`${prefix}Text: ${parsed.text}`);
-                                // console.log(`${prefix}HTML: ${parsed.html}`);
-                            }
-                            console.log(`${prefix}Subject: ${parsed.subject}`);
+                            console.log(`${prefix}Text: ${parsed.text}`);
+                            // console.log(`${prefix}HTML: ${parsed.html}`);
+                            console.log(`${prefix}From: ${parsed.from?.text}`);
+                            // console.log(`${prefix}Subject: ${parsed.subject}`);
                         });
                     });
                 });

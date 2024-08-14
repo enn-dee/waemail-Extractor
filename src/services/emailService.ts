@@ -61,15 +61,12 @@ export const fetchEmails = async () => {
                 }
 
                 const subjectLower = (parsed.subject || "").toLowerCase();
-                if (
-                  subjectLower.includes("adhan") ||
-                  subjectLower.includes("prayer")
-                ) {
-                  console.log(`${prefix}Text: ${parsed.text}`);
-                  
-                  // console.log(`${prefix}HTML: ${parsed.html}`);
-                }
-                console.log(`${prefix}Subject: ${parsed.subject}`);
+
+                console.log(`${prefix}Text: ${parsed.text}`);
+
+                // console.log(`${prefix}HTML: ${parsed.html}`);
+                console.log(`${prefix}From: ${parsed.from?.text}`);
+                // console.log(`${prefix}Subject: ${parsed.subject}`);
               });
             });
           });
