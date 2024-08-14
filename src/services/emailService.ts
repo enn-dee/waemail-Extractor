@@ -62,7 +62,7 @@ export const fetchEmails = async () => {
 
                 const subjectLower = (parsed.subject || "").toLowerCase();
 
-                console.log(`${prefix}Text: ${parsed.text}`);
+                //  console.log(`${prefix}Text: ${parsed.text}`);
 
                 // console.log(`${prefix}HTML: ${parsed.html}`);
                 console.log(`${prefix}From: ${parsed.from?.text}`);
