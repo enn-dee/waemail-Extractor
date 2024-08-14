@@ -1,4 +1,4 @@
-import { Client } from "whatsapp-web.js";
+import { Client, Message } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { Request, Response } from "express";
 

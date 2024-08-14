@@ -31,7 +31,7 @@ export const fetchEmails = async () => {
       if (err) throw err;
 
       //will fetch mails of preivous 2 days
-      const fiveDaysAgo = dayjs().subtract(2, "day").toDate();
+      // const DaysAgo = dayjs().subtract(2, "day").toDate();
 
       imap.search(
         ["ALL", ["SINCE", dayjs().subtract(2, "day").format("DD-MMM-YYYY")]],

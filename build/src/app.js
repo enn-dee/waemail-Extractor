@@ -5,23 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const emailController_1 = require("./controllers/emailController");
+const whatsappController_1 = require("./controllers/whatsappController");
+const whatsappService_1 = require("./services/whatsappService");
 const app = (0, express_1.default)();
 const port = 3000;
-// IMAP configuration
-const config = {
-    imap: {
-        user: "updates@connectmazjid.com",
-        password: "C0nn3ctM@zj!d",
-        host: "imap.titan.email",
-        port: 993,
-        tls: true,
-        authTimeout: 20000,
-        connectionTimeout: 10000,
-        tlsOptions: {
-            rejectUnauthorized: false,
-        },
-    },
-};
+app.use(express_1.default.json());
 app.get("/fetch-emails", async (req, res) => {
     // try {
     //   const connection = await imaps.connect(config);
@@ -68,6 +56,16 @@ app.get("/fetch-emails", async (req, res) => {
     //   res.status(500).send('Failed to fetch emails');
     // }
     (0, emailController_1.getEmails)(req, res);
+});
+//whatsapp routes
+app.get("/init-wa", async (req, res) => {
+    (0, whatsappController_1.startWhatsApp)(req, res);
+});
+app.post("/send-msg", (req, res) => {
+    (0, whatsappService_1.sendWhatsappMessage)(req, res);
+});
+app.get("/fetch-msg", (req, res) => {
+    (0, whatsappService_1.showMessages)(req, res);
 });
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

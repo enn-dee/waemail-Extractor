@@ -4,6 +4,7 @@ exports.startWhatsApp = void 0;
 const whatsappService_1 = require("../services/whatsappService");
 const startWhatsApp = (req, res) => {
     try {
+        // startWhatsAppClient();
         (0, whatsappService_1.startWhatsAppClient)();
         res.status(200).send("WhatsApp client started");
     }

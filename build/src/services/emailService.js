@@ -22,7 +22,7 @@ const fetchEmails = async () => {
         authTimeout: 30000,
         connTimeout: 30000,
         tlsOptions: { rejectUnauthorized: false },
-        debug: console.log,
+        //debug: console.log,
     });
     const openInbox = (cb) => {
         imap.openBox("INBOX", true, cb);
@@ -33,7 +33,7 @@ const fetchEmails = async () => {
                 throw err;
             //will fetch mails of preivous 2 days
             const fiveDaysAgo = (0, dayjs_1.default)().subtract(2, "day").toDate();
-            imap.search(["ALL", ["SINCE", (0, dayjs_1.default)().subtract(1, "day").format("DD-MMM-YYYY")]], function (err, results) {
+            imap.search(["ALL", ["SINCE", (0, dayjs_1.default)().subtract(2, "day").format("DD-MMM-YYYY")]], function (err, results) {
                 if (err) {
                     console.error("Search Error: ", err);
                     return;
