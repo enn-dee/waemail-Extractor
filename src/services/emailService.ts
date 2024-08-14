@@ -34,7 +34,7 @@ export const fetchEmails = async () => {
       const fiveDaysAgo = dayjs().subtract(2, "day").toDate();
 
       imap.search(
-        ["ALL", ["SINCE", dayjs().subtract(1, "day").format("DD-MMM-YYYY")]],
+        ["ALL", ["SINCE", dayjs().subtract(2, "day").format("DD-MMM-YYYY")]],
         function (err: any, results: any) {
           if (err) {
             console.error("Search Error: ", err);
