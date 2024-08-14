@@ -54,3 +54,26 @@ export const sendWhatsappMessage = async (req: Request, res: Response) => {
   }
 };
 
+const fetchMessages = async (number: string): Promise<Message[]> => {
+  const chatId = `${number}@c.us`;
+  const chat = await whatsappClient.getChatById(chatId);
+  const messages = await chat.fetchMessages({ limit: 50 }); 
+  return messages;
+};
+
+export const showMessages = async (req: Request, res: Response) => {
+  const { number } = req.body;
+
+  try {
+    const messages = await fetchMessages(number);
+    const messageBodies = messages.map((msg) => ({
+      id: msg.id.id,
+      from: msg.from,
+      body: msg.body,
+      timestamp: msg.timestamp,
+    }));
+    res.json({ status: "Success", messages: messageBodies });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch messages", details: error });
+  }
+};

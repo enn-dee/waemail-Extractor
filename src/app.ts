@@ -2,12 +2,15 @@ import express, { Request, Response } from "express";
 import imaps from "imap-simple";
 import { getEmails } from "./controllers/emailController";
 import { startWhatsApp } from "./controllers/whatsappController";
-import { sendWhatsappMessage } from "./services/whatsappService";
+import {
+  sendWhatsappMessage,
+  showMessages,
+} from "./services/whatsappService";
 
 const app = express();
 const port = 3000;
 
-app.use(express.json())
+app.use(express.json());
 
 app.get("/fetch-emails", async (req, res) => {
   // try {
@@ -66,17 +69,17 @@ app.get("/fetch-emails", async (req, res) => {
 });
 
 //whatsapp routes
-app.get("/fetch-wa", async (req, res) => {
+app.get("/init-wa", async (req, res) => {
   startWhatsApp(req, res);
 });
 
-app.post("/send-msg", (req:Request , res: Response)=>{
+app.post("/send-msg", (req: Request, res: Response) => {
   sendWhatsappMessage(req, res);
-})
+});
 
-app.get("/fetch-msg", (req:Request, res: Response)=>{
-  
-})
+app.get("/fetch-msg", (req: Request, res: Response) => {
+  showMessages(req, res);
+});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
