@@ -1,31 +1,12 @@
 import { Client, Message } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { Request, Response } from "express";
-// import { logger } from "../utils/logger";
+import { logger } from "../utils/logger";
 
 let whatsappClient: Client;
 
-// export const startWhatsAppClient = () => {
-
-//   const client = new Client({});
-
-//   client.on("qr", (qr) => {
-//     qrcode.generate(qr, { small: true });
-//   });
-
-//   client.on("ready", () => {
-//     console.log("WhatsApp Client is ready!");
-//   });
-
-//   client.on("message", (message) => {
-//     console.log(`Received message: ${message.body}`);
-//   });
-
-//   client.initialize();
-// };
-
 export const startWhatsAppClient = () => {
-// logger.info("")
+  logger.info("Accessed whatsapp client init service");
 
   whatsappClient = new Client({});
 
@@ -35,6 +16,7 @@ export const startWhatsAppClient = () => {
   });
 
   whatsappClient.on("ready", () => {
+    logger.info("whatsapp ready event accessed");
     console.log("WhatsApp Client is ready!");
   });
 
@@ -51,8 +33,10 @@ export const sendWhatsappMessage = async (req: Request, res: Response) => {
   try {
     const chatId = `${number}@c.us`;
     await whatsappClient.sendMessage(chatId, message);
+    logger.info("Message sent via whatsapp sucessfully");
     res.json({ status: "Message sent successfully" });
   } catch (error) {
+    logger.error("Failed to send message| sendWhatsappMessage Service ");
     res.status(500).json({ error: "Failed to send message", details: error });
   }
 };
@@ -75,8 +59,10 @@ export const showMessages = async (req: Request, res: Response) => {
       body: msg.body,
       timestamp: msg.timestamp,
     }));
+    logger.info("Fetched whatsapp messages")
     res.json({ status: "Success", messages: messageBodies });
   } catch (error) {
+    logger.info("Failed to fetch messages")
     res.status(500).json({ error: "Failed to fetch messages", details: error });
   }
 };

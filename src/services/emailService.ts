@@ -2,6 +2,7 @@ import Imap from "node-imap";
 import { simpleParser } from "mailparser";
 import dotenv from "dotenv";
 import dayjs from "dayjs";
+import { logger } from "../utils/logger";
 
 dotenv.config();
 
@@ -77,6 +78,7 @@ export const fetchEmails = async () => {
 
           f.once("end", function () {
             imap.end();
+            // logger.info("closed imap connection")
           });
         }
       );
@@ -84,7 +86,7 @@ export const fetchEmails = async () => {
   });
 
   imap.once("error", function (err: any) {
-    console.error("IMAP Error: ", err);
+    logger.error("IMAP error", err)
   });
 
   imap.connect();
