@@ -3,6 +3,8 @@ import { simpleParser } from "mailparser";
 import dotenv from "dotenv";
 import dayjs from "dayjs";
 import { logger } from "../utils/logger";
+import mazjidModel from "../models/mazjid.model";
+import { findMazjid } from "./mazjidFromdb";
 
 dotenv.config();
 
@@ -69,10 +71,13 @@ export const fetchEmails = async () => {
                 // console.log(`${prefix}From: ${parsed.from?.text}`);
                 // console.log(`${prefix}Subject: ${parsed.subject}`);
 
-                const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1]; //will exclude emails , only store first part i.e masjid name
+                const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1];
                 const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
+
                 console.log(`${prefix}From Name: ${fromName}`);
-                console.log(`${prefix}From Email: ${fromEmail}`)
+                // console.log(`${prefix}From Email: ${fromEmail}`);
+                const cleanedString: string = fromName.replace(/"/g, '');
+             findMazjid(cleanedString)
               });
             });
           });
