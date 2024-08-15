@@ -69,9 +69,10 @@ export const fetchEmails = async () => {
                 // console.log(`${prefix}From: ${parsed.from?.text}`);
                 // console.log(`${prefix}Subject: ${parsed.subject}`);
 
-
-                const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1];  //will exclude emails , only store first part i.e masjid name 
-                  console.log(`${prefix}From: ${fromName}`);
+                const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1]; //will exclude emails , only store first part i.e masjid name
+                const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
+                console.log(`${prefix}From Name: ${fromName}`);
+                console.log(`${prefix}From Email: ${fromEmail}`)
               });
             });
           });
@@ -86,7 +87,7 @@ export const fetchEmails = async () => {
   });
 
   imap.once("error", function (err: any) {
-    logger.error("IMAP error", err)
+    logger.error("IMAP error", err);
   });
 
   imap.connect();
