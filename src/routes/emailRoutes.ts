@@ -3,6 +3,6 @@ import { getEmails } from "../controllers/emailController";
 
 const router = Router();
 
-router.get("/", getEmails);
+router.get("/fetch-emails", getEmails);
 
 export default router;

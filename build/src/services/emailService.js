@@ -55,10 +55,12 @@ const fetchEmails = async () => {
                                 return;
                             }
                             const subjectLower = (parsed.subject || "").toLowerCase();
-                            console.log(`${prefix}Text: ${parsed.text}`);
+                            //  console.log(`${prefix}Text: ${parsed.text}`);
                             // console.log(`${prefix}HTML: ${parsed.html}`);
-                            console.log(`${prefix}From: ${parsed.from?.text}`);
+                            // console.log(`${prefix}From: ${parsed.from?.text}`);
                             // console.log(`${prefix}Subject: ${parsed.subject}`);
+                            const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1]; //will exclude emails , only store first part i.e masjid name 
+                            console.log(`${prefix}From: ${fromName}`);
                         });
                     });
                 });

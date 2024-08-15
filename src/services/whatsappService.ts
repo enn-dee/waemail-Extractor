@@ -1,6 +1,7 @@
 import { Client, Message } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { Request, Response } from "express";
+// import { logger } from "../utils/logger";
 
 let whatsappClient: Client;
 
@@ -24,6 +25,8 @@ let whatsappClient: Client;
 // };
 
 export const startWhatsAppClient = () => {
+// logger.info("")
+
   whatsappClient = new Client({});
 
   whatsappClient.on("qr", (qr) => {
@@ -57,7 +60,7 @@ export const sendWhatsappMessage = async (req: Request, res: Response) => {
 const fetchMessages = async (number: string): Promise<Message[]> => {
   const chatId = `${number}@c.us`;
   const chat = await whatsappClient.getChatById(chatId);
-  const messages = await chat.fetchMessages({ limit: 50 }); 
+  const messages = await chat.fetchMessages({ limit: 50 });
   return messages;
 };
 
