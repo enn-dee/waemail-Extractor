@@ -65,19 +65,33 @@ export const fetchEmails = async () => {
 
                 const subjectLower = (parsed.subject || "").toLowerCase();
 
-                //  console.log(`${prefix}Text: ${parsed.text}`);
+                
+                console.log(`${prefix}From: ${parsed.from?.text}`);
                 // console.log(`${prefix}HTML: ${parsed.html}`);
+                 console.log(`${prefix}Text: ${parsed.text}`);
 
-                // console.log(`${prefix}From: ${parsed.from?.text}`);
                 // console.log(`${prefix}Subject: ${parsed.subject}`);
 
                 const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1];
                 const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
 
-                console.log(`${prefix}From Name: ${fromName}`);
+                // console.log(`${prefix}From Name: ${fromName}`);
                 // console.log(`${prefix}From Email: ${fromEmail}`);
-                const cleanedString: string = fromName.replace(/"/g, '');
-             findMazjid(cleanedString)
+
+                const SantizedName: string = fromName.replace(/"/g, "");
+                //  findMazjid(cleanedString)
+                findMazjid(SantizedName).then((data) => {
+                  if (data) {
+                    let url: string = data.externalLinks[1].url;
+                    if (!url) {
+                      logger.error(`No url found in db`);
+                    } else {
+                      console.log(
+                        `URL found for Masjid - ${SantizedName}\tMasjid URL fetched: ${url}`
+                      );
+                    }
+                  }
+                });
               });
             });
           });
