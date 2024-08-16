@@ -7,7 +7,7 @@ import mazjidModel from "../models/mazjid.model";
   //   const collection = db.dbcollection();
 
   //   const data = await collection.findOne({
-  //     masjidName: fromEmail,
+  //     masjidName: fromMasjid,
   //   });
   //   console.log("Masjid Data: ", data);
 
@@ -31,11 +31,10 @@ import mazjidModel from "../models/mazjid.model";
 export const findMazjid = async (masjidname:string): Promise<any> => {
     if (masjidname) {
         try {
-            const emailData = await mazjidModel.findOne({ masjidName: masjidname }).exec();
+            const MasjidData = await mazjidModel.findOne({ masjidName: masjidname }).exec();
 
-           
-            if (emailData) {
-                return emailData; 
+            if (MasjidData) {
+                return MasjidData; 
             } else {
                 console.log("No data found for masjid:", masjidname);
                 return null; 

@@ -8,6 +8,8 @@ const node_imap_1 = __importDefault(require("node-imap"));
 const mailparser_1 = require("mailparser");
 const dotenv_1 = __importDefault(require("dotenv"));
 const dayjs_1 = __importDefault(require("dayjs"));
+const logger_1 = require("../utils/logger");
+const mazjidFromdb_1 = require("./mazjidFromdb");
 dotenv_1.default.config();
 const imapuser = process.env.IMAP_USER;
 const imaphost = process.env.IMAP_HOST;
@@ -55,12 +57,27 @@ const fetchEmails = async () => {
                                 return;
                             }
                             const subjectLower = (parsed.subject || "").toLowerCase();
-                            //  console.log(`${prefix}Text: ${parsed.text}`);
+                            console.log(`${prefix}From: ${parsed.from?.text}`);
                             // console.log(`${prefix}HTML: ${parsed.html}`);
-                            // console.log(`${prefix}From: ${parsed.from?.text}`);
+                            //  console.log(`${prefix}Text: ${parsed.text}`);
                             // console.log(`${prefix}Subject: ${parsed.subject}`);
-                            const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1]; //will exclude emails , only store first part i.e masjid name 
-                            console.log(`${prefix}From: ${fromName}`);
+                            const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1];
+                            const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
+                            // console.log(`${prefix}From Name: ${fromName}`);
+                            // console.log(`${prefix}From Email: ${fromEmail}`);
+                            const SantizedName = fromName.replace(/"/g, "");
+                            //  findMazjid(cleanedString)
+                            (0, mazjidFromdb_1.findMazjid)(SantizedName).then((data) => {
+                                if (data) {
+                                    let url = data.externalLinks[1].url;
+                                    if (!url) {
+                                        logger_1.logger.error(`No url found in db`);
+                                    }
+                                    else {
+                                        console.log(`URL found for Masjid - ${SantizedName}\tMasjid URL fetched: ${url}`);
+                                    }
+                                }
+                            });
                         });
                     });
                 });
@@ -71,7 +88,7 @@ const fetchEmails = async () => {
         });
     });
     imap.once("error", function (err) {
-        console.error("IMAP Error: ", err);
+        logger_1.logger.error("IMAP error", err);
     });
     imap.connect();
 };

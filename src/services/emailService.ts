@@ -68,7 +68,7 @@ export const fetchEmails = async () => {
                 
                 console.log(`${prefix}From: ${parsed.from?.text}`);
                 // console.log(`${prefix}HTML: ${parsed.html}`);
-                 console.log(`${prefix}Text: ${parsed.text}`);
+                //  console.log(`${prefix}Text: ${parsed.text}`);
 
                 // console.log(`${prefix}Subject: ${parsed.subject}`);
 
@@ -79,6 +79,7 @@ export const fetchEmails = async () => {
                 // console.log(`${prefix}From Email: ${fromEmail}`);
 
                 const SantizedName: string = fromName.replace(/"/g, "");
+
                 //  findMazjid(cleanedString)
                 findMazjid(SantizedName).then((data) => {
                   if (data) {
@@ -92,13 +93,14 @@ export const fetchEmails = async () => {
                     }
                   }
                 });
+
+
               });
             });
           });
 
           f.once("end", function () {
             imap.end();
-            // logger.info("closed imap connection")
           });
         }
       );

@@ -15,9 +15,22 @@ export const startWhatsAppClient = () => {
     qrcode.generate(qr, { small: true });
   });
 
-  whatsappClient.on("ready", () => {
-    logger.info("whatsapp ready event accessed");
+  whatsappClient.on("ready", async () => {
+    logger.info("WhatsApp ready event accessed");
     console.log("WhatsApp Client is ready!");
+
+    // try {
+      
+    //   const chats = await whatsappClient.getChats();
+    //   const groupChats = chats.filter(chat => chat.isGroup);
+
+    //   console.log("Group Chats:");
+    //   groupChats.forEach(group => {
+    //     console.log(`Group Name: ${group.name}, Group ID: ${group.id._serialized}`);
+    //   });
+    // } catch (error) {
+    //   console.error("Failed to retrieve group chats:", error);
+    // }
   });
 
   whatsappClient.on("message", (message) => {
@@ -41,18 +54,25 @@ export const sendWhatsappMessage = async (req: Request, res: Response) => {
   }
 };
 
-const fetchMessages = async (number: string): Promise<Message[]> => {
+const fetchContactMessages = async (number: string): Promise<Message[]> => {
   const chatId = `${number}@c.us`;
   const chat = await whatsappClient.getChatById(chatId);
   const messages = await chat.fetchMessages({ limit: 50 });
   return messages;
 };
 
-export const showMessages = async (req: Request, res: Response) => {
+const fetchGroupMessages = async (groupId: string): Promise<Message[]> => {
+  const chatId = `${groupId}@g.us`; 
+  const chat = await whatsappClient.getChatById(chatId);
+  const messages = await chat.fetchMessages({ limit: 50 });
+  return messages;
+};
+
+export const showContactMessages = async (req: Request, res: Response) => {
   const { number } = req.body;
 
   try {
-    const messages = await fetchMessages(number);
+    const messages = await fetchContactMessages(number);
     const messageBodies = messages.map((msg) => ({
       id: msg.id.id,
       from: msg.from,
@@ -64,5 +84,24 @@ export const showMessages = async (req: Request, res: Response) => {
   } catch (error) {
     logger.info("Failed to fetch messages")
     res.status(500).json({ error: "Failed to fetch messages", details: error });
+  }
+};
+
+export const showGroupMessages = async (req: Request, res: Response) => {
+  const { groupID } = req.body;
+
+  try {
+    const messages = await fetchGroupMessages(groupID);
+    const messageBodies = messages.map((msg) => ({
+      id: msg.id.id,
+      from: msg.from,
+      body: msg.body,
+      timestamp: msg.timestamp,
+    }));
+    logger.info("Fetched Group messages")
+    res.json({ status: "Success", messages: messageBodies });
+  } catch (error) {
+    logger.error("Failed to fetch Group messages")
+    res.status(500).json({ error: "Failed to fetch Group messages", details: error });
   }
 };

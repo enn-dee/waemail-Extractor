@@ -2,6 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const whatsappController_1 = require("../controllers/whatsappController");
+const whatsappService_1 = require("../services/whatsappService");
 const router = (0, express_1.Router)();
-router.get("/", whatsappController_1.startWhatsApp);
+router.get("/init-wa", whatsappController_1.startWhatsApp);
+router.post("/send-msg", whatsappService_1.sendWhatsappMessage);
+router.get("/fetch-cmsg", whatsappService_1.showContactMessages);
+router.get("/fetch-gmsg", whatsappService_1.showGroupMessages);
 exports.default = router;
