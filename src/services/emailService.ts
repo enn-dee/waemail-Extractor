@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import dayjs from "dayjs";
 import { logger } from "../utils/logger";
 import mazjidModel from "../models/mazjid.model";
-import { findMazjid } from "./mazjidFromdb";
+import { findMasjidByEmail, findMazjid } from "./mazjidFromdb";
 
 dotenv.config();
 
@@ -34,7 +34,6 @@ export const fetchEmails = async () => {
       if (err) throw err;
 
       //will fetch mails of preivous 2 days
-      // const DaysAgo = dayjs().subtract(2, "day").toDate();
 
       imap.search(
         ["ALL", ["SINCE", dayjs().subtract(2, "day").format("DD-MMM-YYYY")]],
@@ -65,7 +64,6 @@ export const fetchEmails = async () => {
 
                 const subjectLower = (parsed.subject || "").toLowerCase();
 
-                
                 console.log(`${prefix}From: ${parsed.from?.text}`);
                 // console.log(`${prefix}HTML: ${parsed.html}`);
                 //  console.log(`${prefix}Text: ${parsed.text}`);
@@ -76,25 +74,29 @@ export const fetchEmails = async () => {
                 const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
 
                 // console.log(`${prefix}From Name: ${fromName}`);
-                // console.log(`${prefix}From Email: ${fromEmail}`);
+                console.log(`${prefix}From Email: ${fromEmail}`);
 
                 const SantizedName: string = fromName.replace(/"/g, "");
 
                 //  findMazjid(cleanedString)
-                findMazjid(SantizedName).then((data) => {
+                // findMazjid(SantizedName).then((data) => {
+                //   if (data) {
+                //     let url: string = data.externalLinks[1].url;
+                //     if (!url) {
+                //       logger.error(`No url found in db`);
+                //     } else {
+                //       console.log(
+                //         `URL found for Masjid - ${SantizedName}\t-Masjid URL fetched: ${url}`
+                //       );
+                //     }
+                //   }
+                // });
+                findMasjidByEmail(fromEmail).then((data) => {
                   if (data) {
-                    let url: string = data.externalLinks[1].url;
-                    if (!url) {
-                      logger.error(`No url found in db`);
-                    } else {
-                      console.log(
-                        `URL found for Masjid - ${SantizedName}\tMasjid URL fetched: ${url}`
-                      );
-                    }
-                  }
+                    // let url: string = data.externalLinks[1].url;
+                    logger.info(`\nwebsite found for masjid: ${data.masjidName}\t website: ${data["externalLinks"][1]["url"]}\n`);
+                  } 
                 });
-
-
               });
             });
           });

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.showGroupMessages = exports.showContactMessages = exports.sendWhatsappMessage = exports.startWhatsAppClient = void 0;
+exports.fetchAndFilterGroupMessages = exports.showGroupMessages = exports.showContactMessages = exports.sendGroupMessage = exports.sendContactMessage = exports.startWhatsAppClient = void 0;
 const whatsapp_web_js_1 = require("whatsapp-web.js");
 const qrcode_terminal_1 = __importDefault(require("qrcode-terminal"));
 const logger_1 = require("../utils/logger");
@@ -35,7 +35,7 @@ const startWhatsAppClient = () => {
     whatsappClient.initialize();
 };
 exports.startWhatsAppClient = startWhatsAppClient;
-const sendWhatsappMessage = async (req, res) => {
+const sendContactMessage = async (req, res) => {
     const { number, message } = req.body;
     try {
         const chatId = `${number}@c.us`;
@@ -48,7 +48,21 @@ const sendWhatsappMessage = async (req, res) => {
         res.status(500).json({ error: "Failed to send message", details: error });
     }
 };
-exports.sendWhatsappMessage = sendWhatsappMessage;
+exports.sendContactMessage = sendContactMessage;
+const sendGroupMessage = async (req, res) => {
+    const { groupID, message } = req.body;
+    try {
+        const chatId = `${groupID}@g.us`;
+        await whatsappClient.sendMessage(chatId, message);
+        logger_1.logger.info("Message sent via whatsapp sucessfully");
+        res.json({ status: "Message sent successfully" });
+    }
+    catch (error) {
+        logger_1.logger.error("Failed to send message| sendWhatsappMessage Service ");
+        res.status(500).json({ error: "Failed to send message", details: error });
+    }
+};
+exports.sendGroupMessage = sendGroupMessage;
 const fetchContactMessages = async (number) => {
     const chatId = `${number}@c.us`;
     const chat = await whatsappClient.getChatById(chatId);
@@ -99,3 +113,47 @@ const showGroupMessages = async (req, res) => {
     }
 };
 exports.showGroupMessages = showGroupMessages;
+const fetchAndFilterGroupMessages = async (req, res) => {
+    const { groupID } = req.body;
+    try {
+        const chats = await whatsappClient.getChats();
+        const groupChat = chats.find((chat) => chat.isGroup && chat.name === groupID);
+        if (!groupChat) {
+            logger_1.logger.error(`Group with name ${groupID} not found.`);
+            return res
+                .status(404)
+                .json({ error: `Group with name ${groupID} not found.` });
+        }
+        const messages = await groupChat.fetchMessages({ limit: 50 });
+        const prayerKeywords = [
+            "prayer",
+            "Fajr",
+            "Dhuhr",
+            "Asr",
+            "Maghrib",
+            "Isha",
+        ];
+        const prayerMessages = messages.filter((msg) => prayerKeywords.some((keyword) => msg.body.toLowerCase().includes(keyword.toLowerCase())));
+        if (prayerMessages.length > 0) {
+            logger_1.logger.info(`Found ${prayerMessages.length} messages containing prayer timings.`);
+            res.json({
+                status: "Success",
+                prayerMessages: prayerMessages.map((msg) => msg.body),
+            });
+        }
+        else {
+            logger_1.logger.info("No messages containing prayer timings found.");
+            res.json({ status: "No prayer timings found" });
+        }
+    }
+    catch (error) {
+        logger_1.logger.error("Failed to fetch and filter group messages", error);
+        res
+            .status(500)
+            .json({
+            error: "Failed to fetch and filter group messages",
+            details: error,
+        });
+    }
+};
+exports.fetchAndFilterGroupMessages = fetchAndFilterGroupMessages;
