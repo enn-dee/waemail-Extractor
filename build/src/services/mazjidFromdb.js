@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findMazjid = void 0;
+exports.findMasjidByEmail = exports.findMazjid = void 0;
 const mazjid_model_1 = __importDefault(require("../models/mazjid.model"));
 // import { ConnectDB } from "../config/database";
 // export const findMazjid = async (masjidname:string) => {
@@ -50,3 +50,27 @@ const findMazjid = async (masjidname) => {
     }
 };
 exports.findMazjid = findMazjid;
+const findMasjidByEmail = async (email) => {
+    if (email) {
+        try {
+            const cleanEmail = email.replace(/[<>]/g, "");
+            const MasjidData = await mazjid_model_1.default.findOne({ "externalLinks.url": cleanEmail }).exec();
+            if (MasjidData) {
+                return MasjidData;
+            }
+            else {
+                console.log("No data found for masjid with email:", cleanEmail);
+                return null;
+            }
+        }
+        catch (error) {
+            console.error("Error finding masjid data by email:", error);
+            throw error;
+        }
+    }
+    else {
+        console.log("Email is required.");
+        return null;
+    }
+};
+exports.findMasjidByEmail = findMasjidByEmail;

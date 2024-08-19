@@ -34,7 +34,6 @@ const fetchEmails = async () => {
             if (err)
                 throw err;
             //will fetch mails of preivous 2 days
-            // const DaysAgo = dayjs().subtract(2, "day").toDate();
             imap.search(["ALL", ["SINCE", (0, dayjs_1.default)().subtract(2, "day").format("DD-MMM-YYYY")]], function (err, results) {
                 if (err) {
                     console.error("Search Error: ", err);
@@ -64,18 +63,25 @@ const fetchEmails = async () => {
                             const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1];
                             const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
                             // console.log(`${prefix}From Name: ${fromName}`);
-                            // console.log(`${prefix}From Email: ${fromEmail}`);
+                            console.log(`${prefix}From Email: ${fromEmail}`);
                             const SantizedName = fromName.replace(/"/g, "");
                             //  findMazjid(cleanedString)
-                            (0, mazjidFromdb_1.findMazjid)(SantizedName).then((data) => {
+                            // findMazjid(SantizedName).then((data) => {
+                            //   if (data) {
+                            //     let url: string = data.externalLinks[1].url;
+                            //     if (!url) {
+                            //       logger.error(`No url found in db`);
+                            //     } else {
+                            //       console.log(
+                            //         `URL found for Masjid - ${SantizedName}\t-Masjid URL fetched: ${url}`
+                            //       );
+                            //     }
+                            //   }
+                            // });
+                            (0, mazjidFromdb_1.findMasjidByEmail)(fromEmail).then((data) => {
                                 if (data) {
-                                    let url = data.externalLinks[1].url;
-                                    if (!url) {
-                                        logger_1.logger.error(`No url found in db`);
-                                    }
-                                    else {
-                                        console.log(`URL found for Masjid - ${SantizedName}\tMasjid URL fetched: ${url}`);
-                                    }
+                                    // let url: string = data.externalLinks[1].url;
+                                    logger_1.logger.info(`\nwebsite found for masjid: ${data.masjidName}\t website: ${data["externalLinks"][1]["url"]}\n`);
                                 }
                             });
                         });

@@ -66,13 +66,13 @@ exports.sendGroupMessage = sendGroupMessage;
 const fetchContactMessages = async (number) => {
     const chatId = `${number}@c.us`;
     const chat = await whatsappClient.getChatById(chatId);
-    const messages = await chat.fetchMessages({ limit: 50 });
+    const messages = await chat.fetchMessages({ limit: 10 });
     return messages;
 };
 const fetchGroupMessages = async (groupId) => {
     const chatId = `${groupId}@g.us`;
     const chat = await whatsappClient.getChatById(chatId);
-    const messages = await chat.fetchMessages({ limit: 50 });
+    const messages = await chat.fetchMessages({ limit: 10 });
     return messages;
 };
 const showContactMessages = async (req, res) => {
@@ -109,7 +109,9 @@ const showGroupMessages = async (req, res) => {
     }
     catch (error) {
         logger_1.logger.error("Failed to fetch Group messages");
-        res.status(500).json({ error: "Failed to fetch Group messages", details: error });
+        res
+            .status(500)
+            .json({ error: "Failed to fetch Group messages", details: error });
     }
 };
 exports.showGroupMessages = showGroupMessages;
@@ -117,12 +119,12 @@ const fetchAndFilterGroupMessages = async (req, res) => {
     const { groupID } = req.body;
     try {
         const chats = await whatsappClient.getChats();
-        const groupChat = chats.find((chat) => chat.isGroup && chat.name === groupID);
+        const groupChat = chats.find((chat) => chat.isGroup && chat.id === groupID);
         if (!groupChat) {
-            logger_1.logger.error(`Group with name ${groupID} not found.`);
+            logger_1.logger.error(`Group with id ${groupID} not found.`);
             return res
                 .status(404)
-                .json({ error: `Group with name ${groupID} not found.` });
+                .json({ error: `Group with id ${groupID} not found.` });
         }
         const messages = await groupChat.fetchMessages({ limit: 50 });
         const prayerKeywords = [
@@ -148,9 +150,7 @@ const fetchAndFilterGroupMessages = async (req, res) => {
     }
     catch (error) {
         logger_1.logger.error("Failed to fetch and filter group messages", error);
-        res
-            .status(500)
-            .json({
+        res.status(500).json({
             error: "Failed to fetch and filter group messages",
             details: error,
         });
