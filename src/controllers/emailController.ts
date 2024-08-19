@@ -4,10 +4,16 @@ import { logger } from "../utils/logger";
 
 export const getEmails = async (req: Request, res: Response) => {
   try {
-    await fetchEmails();
-    logger.info("Emails fetched successfully | getEmails accessed")
-    res.status(200).send("Emails fetched successfully");
+    const websites = await fetchEmails(); 
+    logger.info("Emails fetched successfully | getEmails accessed");
+
+    if (websites.length > 0) {
+      res.status(200).json({ websites });
+    } else {
+      res.status(200).json({ message: "No relevant masjid data found in emails" });
+    }
   } catch (error) {
-    res.status(500).send("Failed to fetch emails");
+    logger.error("Failed to fetch emails | getEmails accessed", error);
+    res.status(500).json({ error: "Failed to fetch emails", details: error });
   }
 };

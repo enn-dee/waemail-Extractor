@@ -5,12 +5,18 @@ const emailService_1 = require("../services/emailService");
 const logger_1 = require("../utils/logger");
 const getEmails = async (req, res) => {
     try {
-        await (0, emailService_1.fetchEmails)();
+        const websites = await (0, emailService_1.fetchEmails)();
         logger_1.logger.info("Emails fetched successfully | getEmails accessed");
-        res.status(200).send("Emails fetched successfully");
+        if (websites.length > 0) {
+            res.status(200).json({ websites });
+        }
+        else {
+            res.status(200).json({ message: "No relevant masjid data found in emails" });
+        }
     }
     catch (error) {
-        res.status(500).send("Failed to fetch emails");
+        logger_1.logger.error("Failed to fetch emails | getEmails accessed", error);
+        res.status(500).json({ error: "Failed to fetch emails", details: error });
     }
 };
 exports.getEmails = getEmails;

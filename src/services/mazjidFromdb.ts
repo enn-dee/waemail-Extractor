@@ -49,18 +49,18 @@ export const findMazjid = async (masjidname:string): Promise<any> => {
     }
 };
 
-export const findMasjidByEmail = async (email: string): Promise<any> => {
+export const findMasjidByEmail = async (email: string): Promise<any[]> => {
     if (email) {
         try {
             const cleanEmail = email.replace(/[<>]/g, "");
 
-            const MasjidData = await mazjidModel.findOne({ "externalLinks.url": cleanEmail }).exec();
+            const masjidData = await mazjidModel.find({ "externalLinks.url": cleanEmail }).exec();
 
-            if (MasjidData) {
-                return MasjidData;
+            if (masjidData && masjidData.length > 0) {
+                return masjidData; 
             } else {
-                console.log("No data found for masjid with email:", cleanEmail);
-                return null;
+                console.log("No data found for masjids with email:", cleanEmail);
+                return [];
             }
         } catch (error) {
             console.error("Error finding masjid data by email:", error);
@@ -68,6 +68,7 @@ export const findMasjidByEmail = async (email: string): Promise<any> => {
         }
     } else {
         console.log("Email is required.");
-        return null;
+        return [];
     }
 };
+

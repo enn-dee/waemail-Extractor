@@ -24,78 +24,63 @@ const fetchEmails = async () => {
         authTimeout: 30000,
         connTimeout: 30000,
         tlsOptions: { rejectUnauthorized: false },
-        //debug: console.log,
     });
     const openInbox = (cb) => {
         imap.openBox("INBOX", true, cb);
     };
-    imap.once("ready", function () {
-        openInbox(function (err, box) {
-            if (err)
-                throw err;
-            //will fetch mails of preivous 2 days
-            imap.search(["ALL", ["SINCE", (0, dayjs_1.default)().subtract(2, "day").format("DD-MMM-YYYY")]], function (err, results) {
-                if (err) {
-                    console.error("Search Error: ", err);
-                    return;
-                }
-                if (results.length === 0) {
-                    console.log("No emails found.");
-                    imap.end();
-                    return;
-                }
-                const f = imap.fetch(results, {
-                    bodies: "",
-                });
-                f.on("message", function (msg, seqno) {
-                    const prefix = "(#" + seqno + ") ";
-                    msg.on("body", function (stream, info) {
-                        (0, mailparser_1.simpleParser)(stream, (err, parsed) => {
-                            if (err) {
-                                console.error("Error parsing email: ", err);
-                                return;
-                            }
-                            const subjectLower = (parsed.subject || "").toLowerCase();
-                            console.log(`${prefix}From: ${parsed.from?.text}`);
-                            // console.log(`${prefix}HTML: ${parsed.html}`);
-                            //  console.log(`${prefix}Text: ${parsed.text}`);
-                            // console.log(`${prefix}Subject: ${parsed.subject}`);
-                            const fromName = parsed.from?.text.match(/(.*?)(?=\s*<)/)?.[1];
-                            const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
-                            // console.log(`${prefix}From Name: ${fromName}`);
-                            console.log(`${prefix}From Email: ${fromEmail}`);
-                            const SantizedName = fromName.replace(/"/g, "");
-                            //  findMazjid(cleanedString)
-                            // findMazjid(SantizedName).then((data) => {
-                            //   if (data) {
-                            //     let url: string = data.externalLinks[1].url;
-                            //     if (!url) {
-                            //       logger.error(`No url found in db`);
-                            //     } else {
-                            //       console.log(
-                            //         `URL found for Masjid - ${SantizedName}\t-Masjid URL fetched: ${url}`
-                            //       );
-                            //     }
-                            //   }
-                            // });
-                            (0, mazjidFromdb_1.findMasjidByEmail)(fromEmail).then((data) => {
-                                if (data) {
-                                    // let url: string = data.externalLinks[1].url;
-                                    logger_1.logger.info(`\nwebsite found for masjid: ${data.masjidName}\t website: ${data["externalLinks"][1]["url"]}\n`);
+    const websites = [];
+    return new Promise((resolve, reject) => {
+        imap.once("ready", function () {
+            openInbox(async function (err, box) {
+                if (err)
+                    return reject(err);
+                imap.search(["ALL", ["SINCE", (0, dayjs_1.default)().subtract(2, "day").format("DD-MMM-YYYY")]], function (err, results) {
+                    if (err)
+                        return reject(err);
+                    if (results.length === 0) {
+                        imap.end();
+                        return resolve(websites);
+                    }
+                    const f = imap.fetch(results, { bodies: "" });
+                    f.on("message", function (msg, seqno) {
+                        msg.on("body", function (stream, info) {
+                            (0, mailparser_1.simpleParser)(stream, async (err, parsed) => {
+                                if (err) {
+                                    console.error("Error parsing email: ", err);
+                                    return;
+                                }
+                                const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
+                                if (fromEmail) {
+                                    const masjidData = await (0, mazjidFromdb_1.findMasjidByEmail)(fromEmail);
+                                    if (masjidData) {
+                                        masjidData.forEach((masjid) => {
+                                            if (masjid.externalLinks[1]?.url) {
+                                                logger_1.logger.info(`Masjid- ${masjid.masjidName} , data- ${masjidData}`);
+                                                websites.push({
+                                                    masjidName: masjid.masjidName,
+                                                    website: masjid.externalLinks[1].url,
+                                                });
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        console.log(`No data for Masjid with email- ${fromEmail}`);
+                                    }
                                 }
                             });
                         });
                     });
-                });
-                f.once("end", function () {
-                    imap.end();
+                    f.once("end", function () {
+                        imap.end();
+                        resolve(websites);
+                    });
                 });
             });
         });
+        imap.once("error", function (err) {
+            reject(err);
+        });
+        imap.connect();
     });
-    imap.once("error", function (err) {
-        logger_1.logger.error("IMAP error", err);
-    });
-    imap.connect();
 };
 exports.fetchEmails = fetchEmails;

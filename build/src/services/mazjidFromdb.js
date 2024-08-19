@@ -54,13 +54,13 @@ const findMasjidByEmail = async (email) => {
     if (email) {
         try {
             const cleanEmail = email.replace(/[<>]/g, "");
-            const MasjidData = await mazjid_model_1.default.findOne({ "externalLinks.url": cleanEmail }).exec();
-            if (MasjidData) {
-                return MasjidData;
+            const masjidData = await mazjid_model_1.default.find({ "externalLinks.url": cleanEmail }).exec();
+            if (masjidData && masjidData.length > 0) {
+                return masjidData;
             }
             else {
-                console.log("No data found for masjid with email:", cleanEmail);
-                return null;
+                console.log("No data found for masjids with email:", cleanEmail);
+                return [];
             }
         }
         catch (error) {
@@ -70,7 +70,7 @@ const findMasjidByEmail = async (email) => {
     }
     else {
         console.log("Email is required.");
-        return null;
+        return [];
     }
 };
 exports.findMasjidByEmail = findMasjidByEmail;
