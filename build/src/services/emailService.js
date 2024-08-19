@@ -23,7 +23,7 @@ const fetchEmails = async () => {
         tls: true,
         authTimeout: 30000,
         connTimeout: 30000,
-        tlsOptions: { rejectUnauthorized: false },
+        // tlsOptions: { rejectUnauthorized: false },
     });
     const openInbox = (cb) => {
         imap.openBox("INBOX", true, cb);
@@ -50,6 +50,9 @@ const fetchEmails = async () => {
                                     return;
                                 }
                                 const fromEmail = parsed.from?.text.match(/<(.*?)>/)?.[1];
+                                // console.log(`Text: ${parsed.text}`);
+                                // console.log(`Subject: ${parsed.subject}`);
+                                console.log(`Email- ${fromEmail}`);
                                 if (fromEmail) {
                                     const masjidData = await (0, mazjidFromdb_1.findMasjidByEmail)(fromEmail);
                                     if (masjidData) {
