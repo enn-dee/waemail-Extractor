@@ -10,4 +10,5 @@ router.post("/send-gmsg", whatsappService_1.sendGroupMessage);
 router.get("/fetch-cmsg", whatsappService_1.showContactMessages);
 router.get("/fetch-gmsg", whatsappService_1.showGroupMessages);
 router.get("/fetch-prayer", whatsappService_1.fetchAndFilterGroupMessages);
+router.get("/fetch-byname", whatsappService_1.getGroupMessagesByName);
 exports.default = router;

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchAndFilterGroupMessages = exports.showGroupMessages = exports.showContactMessages = exports.sendGroupMessage = exports.sendContactMessage = exports.startWhatsAppClient = void 0;
+exports.fetchAndFilterGroupMessages = exports.getGroupMessagesByName = exports.showGroupMessages = exports.showContactMessages = exports.sendGroupMessage = exports.sendContactMessage = exports.startWhatsAppClient = void 0;
 const whatsapp_web_js_1 = require("whatsapp-web.js");
 const qrcode_terminal_1 = __importDefault(require("qrcode-terminal"));
 const logger_1 = require("../utils/logger");
@@ -20,10 +20,12 @@ const startWhatsAppClient = () => {
         console.log("WhatsApp Client is ready!");
         // try {
         //   const chats = await whatsappClient.getChats();
-        //   const groupChats = chats.filter(chat => chat.isGroup);
+        //   const groupChats = chats.filter((chat) => chat.isGroup);
         //   console.log("Group Chats:");
-        //   groupChats.forEach(group => {
-        //     console.log(`Group Name: ${group.name}, Group ID: ${group.id._serialized}`);
+        //   groupChats.forEach((group) => {
+        //     console.log(
+        //       `Group Name: ${group.name}, Group ID: ${group.id._serialized}`
+        //     );
         //   });
         // } catch (error) {
         //   console.error("Failed to retrieve group chats:", error);
@@ -115,6 +117,46 @@ const showGroupMessages = async (req, res) => {
     }
 };
 exports.showGroupMessages = showGroupMessages;
+const fetchGroupMessagesByName = async (groupName) => {
+    try {
+        const chats = await whatsappClient.getChats();
+        const groupChat = chats.find((chat) => chat.isGroup && chat.name.toLowerCase() === groupName.toLowerCase());
+        if (!groupChat) {
+            throw new Error(`Group with name "${groupName}" not found.`);
+        }
+        const messages = await groupChat.fetchMessages({ limit: 10 });
+        return messages;
+    }
+    catch (error) {
+        logger_1.logger.error("Error fetching group messages: ", error);
+        throw error;
+    }
+};
+const getGroupMessagesByName = async (req, res) => {
+    const { groupName } = req.body;
+    try {
+        if (!groupName) {
+            return res.status(400).json({ error: "Group name is required." });
+        }
+        const messages = await fetchGroupMessagesByName(groupName);
+        if (!messages || messages.length === 0) {
+            return res.status(404).json({ message: "No messages found in the group." });
+        }
+        const formattedMessages = messages.map((msg) => ({
+            id: msg.id.id,
+            from: msg.from,
+            body: msg.body,
+            timestamp: msg.timestamp,
+        }));
+        logger_1.logger.info(`Fetched messages from group: ${groupName}`);
+        return res.status(200).json({ messages: formattedMessages });
+    }
+    catch (error) {
+        logger_1.logger.error("Failed to fetch group messages:", error);
+        return res.status(500).json({ error: "Failed to fetch group messages", details: error });
+    }
+};
+exports.getGroupMessagesByName = getGroupMessagesByName;
 const fetchAndFilterGroupMessages = async (req, res) => {
     const { groupID } = req.body;
     try {
