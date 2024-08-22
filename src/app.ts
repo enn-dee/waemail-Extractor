@@ -5,6 +5,7 @@ import EmailRouter from "./routes/emailRoutes";
 import WhatsappRouter from "./routes/whatsappRoutes";
 import { logger } from "./utils/logger";
 import { ConnectDB } from "./config/database";
+import EmailService from "./services/EmailService2";
 
 const app = express();
 const port = 3000;
@@ -18,6 +19,7 @@ app.use("/api", EmailRouter);
 app.use("/api", WhatsappRouter);
 
 app.listen(port, () => {
+  EmailService.service.init();
   db.connect();
   console.log(`Server is running on http://localhost:${port}`);
 });
