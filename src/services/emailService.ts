@@ -65,11 +65,14 @@ export const fetchEmails = async (): Promise<any[]> => {
                       masjidData.forEach((masjid: any) => {
                         if (masjid.externalLinks[1]?.url) {
                           logger.info(
-                            `Masjid- ${masjid.masjidName} , data- ${masjidData}`
+                            `Masjid- ${masjid.masjidName} , Masjid ID- ${masjid._id}`
                           );
                           websites.push({
+                            masjidId: masjid._id,
                             masjidName: masjid.masjidName,
                             website: masjid.externalLinks[1].url,
+                            masjidWhatsappId: masjid.externalLinks[3]?.url?.endsWith('@g.us') ? masjid.externalLinks[3].url : "No WhatsApp ID",
+                            body: parsed.text
                           });
                         }
                       });
@@ -91,10 +94,18 @@ export const fetchEmails = async (): Promise<any[]> => {
         );
       });
     });
-
-    imap.once("error", function (err: any) {
-      reject(err);
+    imap.once('error', (err) => {
+      if (err.code === 'EPIPE') {
+        console.error('IMAP server closed the connection:', err);
+      } else {
+        console.error('IMAP error occurred:', err);
+      }
+      imap.end();
     });
+
+    // imap.once("error", function (err: any) {
+    //   reject(err);
+    // });
 
     imap.connect();
   });
