@@ -8,7 +8,7 @@ import { ConnectDB } from "./config/database";
 import EmailService from "./services/EmailService2";
 
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT);
 
 const db = ConnectDB.getinstance()
 

@@ -1,47 +1,72 @@
-import Imap from "node-imap";
-import EventEmitter from "events";
-import StorageService from "../models/file-storage/index";
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const node_imap_1 = __importDefault(require("node-imap"));
+const events_1 = __importDefault(require("events"));
+const index_1 = __importDefault(require("../models/file-storage/index"));
 // import mobileAppModel from "models/mobileApp.model";
-import Social, { ISocial, SocialSource } from "../models/social.model";
+const social_model_1 = __importStar(require("../models/social.model"));
 // import NotificationFactory from "modules/firebase/Notification";
-import dotenv from "dotenv";
-import dayjs from "dayjs";
-import { Attachment, simpleParser } from "mailparser";
-import masjidModel , {IMasjid}from "../models/mazjid.model";
-import { v4 as uuidv4 } from "uuid";
+const dotenv_1 = __importDefault(require("dotenv"));
+const dayjs_1 = __importDefault(require("dayjs"));
+const mailparser_1 = require("mailparser");
+const mazjid_model_1 = __importDefault(require("../models/mazjid.model"));
+const uuid_1 = require("uuid");
 // import Notification from "models/notification.model";
-import mongoose from "mongoose";
-import { AiDataExtraction } from "../modules/openai";
-import TimingRepository from "../repository/Timing.repo";
+const mongoose_1 = __importDefault(require("mongoose"));
+const openai_1 = require("../modules/openai");
+const Timing_repo_1 = __importDefault(require("../repository/Timing.repo"));
 // 
-enum EmailMessageType {
-    ADD = 90,
-    UPDATE = 91,
-    DELETE = 92,
-}
-
-dotenv.config();
-
-export default class EmailService {
-    private static instance: EmailService = new this();
-    private storageService: StorageService = StorageService.instance;
-    private eventEmitter: EventEmitter = new EventEmitter();
-    private imap: Imap;
-    private constructor() {
+var EmailMessageType;
+(function (EmailMessageType) {
+    EmailMessageType[EmailMessageType["ADD"] = 90] = "ADD";
+    EmailMessageType[EmailMessageType["UPDATE"] = 91] = "UPDATE";
+    EmailMessageType[EmailMessageType["DELETE"] = 92] = "DELETE";
+})(EmailMessageType || (EmailMessageType = {}));
+dotenv_1.default.config();
+class EmailService {
+    static instance = new this();
+    storageService = index_1.default.instance;
+    eventEmitter = new events_1.default();
+    imap;
+    constructor() {
         // this.eventEmitter.on("SocialEmail", this.handleNotification);
-        this.imap = new Imap({
-            user: process.env.IMAP_USER as string,
-            password: process.env.IMAP_PASSWORD as string,
-            host: process.env.IMAP_HOST as string,
+        this.imap = new node_imap_1.default({
+            user: process.env.IMAP_USER,
+            password: process.env.IMAP_PASSWORD,
+            host: process.env.IMAP_HOST,
             port: Number(process.env.IMAP_PORT),
             tls: true,
         });
     }
-
-    public static get service() {
+    static get service() {
         return this.instance;
     }
-
     // private handleNotification = async (
     //     data: ISocial,
     //     type: EmailMessageType,
@@ -86,7 +111,6 @@ export default class EmailService {
     //                 "ios",
     //             ),
     //         ]);
-
     //         const notification = new Notification({
     //           title: payload.title || "New update available",
     //           body: payload.body || "New update available",
@@ -97,19 +121,17 @@ export default class EmailService {
     //           expiresAt: dayjs().add(10, "days").toDate(),
     //           createdBy: new mongoose.Types.ObjectId(payload.data.masjidId),
     //         });
-      
     //         await notification.save();
     //     } catch (error) {
     //         console.error(error);
     //     }
     // };
-
-    private getMasjid = async (emailPayload: string): Promise<IMasjid | null> => {
+    getMasjid = async (emailPayload) => {
         let email = emailPayload.toLowerCase();
         if (email.includes("<")) {
             email = email.split("<")[1].split(">")[0];
         }
-        const masjid = await masjidModel.findOne({
+        const masjid = await mazjid_model_1.default.findOne({
             "externalLinks.url": {
                 $regex: email,
             },
@@ -117,36 +139,27 @@ export default class EmailService {
         if (!masjid) {
             return null;
         }
-
         return masjid;
     };
-
-    private openInbox = (cb: (err: Error | null, box: Imap.Box) => void) => {
+    openInbox = (cb) => {
         this.imap.openBox("INBOX", false, cb);
     };
-
-    private handleMedia = async (
-        attachment: Attachment,
-        masjidId: string,
-    ): Promise<string> => {
+    handleMedia = async (attachment, masjidId) => {
         try {
-            const fileName = `${masjidId}/email/${uuidv4()}-${attachment.filename}`;
-            const url = await this.storageService.uploadFile(
-                attachment.content,
-                fileName,
-            );
+            const fileName = `${masjidId}/email/${(0, uuid_1.v4)()}-${attachment.filename}`;
+            const url = await this.storageService.uploadFile(attachment.content, fileName);
             return `${process.env.AWS_S3_BASE_URL}/${url}`;
-        } catch (err) {
+        }
+        catch (err) {
             console.log(err);
             return "";
         }
     };
-
-    private handleNewMessage = (msg: Imap.ImapMessage, seqno: number) => {
+    handleNewMessage = (msg, seqno) => {
         try {
             console.log("Message #%d", seqno);
-            let body: string = "";
-            let attributes: Imap.ImapMessageAttributes;
+            let body = "";
+            let attributes;
             msg.on("body", (stream) => {
                 stream.on("data", (chunk) => {
                     body += chunk.toString("utf8");
@@ -155,9 +168,8 @@ export default class EmailService {
             msg.once("attributes", (attrs) => {
                 attributes = attrs;
             });
-
             msg.once("end", async () => {
-                const parsed = await simpleParser(body);
+                const parsed = await (0, mailparser_1.simpleParser)(body);
                 const data = {
                     from: parsed.from?.text,
                     subject: parsed.subject,
@@ -176,104 +188,84 @@ export default class EmailService {
                     console.log(`From: ${fromName} <${fromAddress}>`);
                 }
                 data.text = data.text?.replaceAll(data.from, "");
-                data.text = data.text?.replaceAll(
-                    process.env.EMAIL_ADDRESS as string,
-                    "",
-                );
+                data.text = data.text?.replaceAll(process.env.EMAIL_ADDRESS, "");
                 data.text = data.text?.replaceAll("unsubscribe", "");
                 if (data.html) {
                     data.html = data.html.replaceAll(data.from, "");
-                    data.html = data.html.replaceAll(
-                        process.env.EMAIL_ADDRESS as string,
-                        "",
-                    );
+                    data.html = data.html.replaceAll(process.env.EMAIL_ADDRESS, "");
                     data.html = data.html.replaceAll("unsubscribe", "");
                 }
-
                 if (!data.text) {
                     return;
                 }
-
                 const masjid = await this.getMasjid(data.from);
                 if (!masjid) {
                     this.imap.addFlags(attributes.uid, ["\\Seen"], (addFlagsError) => {
                         if (addFlagsError) {
                             console.error("Error marking email as read:", addFlagsError);
-                        } else {
+                        }
+                        else {
                             console.log(`Email marked as read with UID ${attributes.uid}`);
                         }
                     });
-                } else {
-                    const timing = await AiDataExtraction(data.text);
+                }
+                else {
+                    const timing = await (0, openai_1.AiDataExtraction)(data.text);
                     if (timing) {
-                        await TimingRepository.repository.handleTiming(
-                            masjid._id,
-                            timing,
-                            "email",
-                            new mongoose.Types.ObjectId(),
-                        );
+                        await Timing_repo_1.default.repository.handleTiming(masjid._id, timing, "email", new mongoose_1.default.Types.ObjectId());
                     }
-                    const urls: string[] = [];
+                    const urls = [];
                     if (data.attachments) {
                         for (let i = 0; i < data.attachments.length; i++) {
                             const attachment = data.attachments[i];
-                            const url = await this.handleMedia(
-                                attachment,
-                                masjid._id.toString(),
-                            );
+                            const url = await this.handleMedia(attachment, masjid._id.toString());
                             urls.push(url);
                         }
                     }
-                    const newSocial = await Social.create({
+                    const newSocial = await social_model_1.default.create({
                         masjidId: masjid._id,
                         message: data.text,
                         html_message: data.html,
                         attachments: urls,
                         messageId: attributes.uid,
-                        source: SocialSource.EMAIL,
+                        source: social_model_1.SocialSource.EMAIL,
                     });
-                    this.eventEmitter.emit(
-                        "SocialEmail",
-                        newSocial,
-                        EmailMessageType.ADD,
-                    );
+                    this.eventEmitter.emit("SocialEmail", newSocial, EmailMessageType.ADD);
                     this.imap.addFlags(attributes.uid, "Deleted", (addFlagsError) => {
                         if (addFlagsError) {
                             console.error("Error marking email as read:", addFlagsError);
-                        } else {
+                        }
+                        else {
                             console.log(`Email removed with UID ${attributes.uid}`);
                         }
                     });
                 }
             });
-        } catch (error) {
+        }
+        catch (error) {
             console.error(error);
         }
     };
-   
-    
-    
-    private readUnseenMessages = () => {
+    readUnseenMessages = () => {
         this.openInbox((err) => {
-            if (err) throw err;
-            this.imap.search(
-                ["UNSEEN", ["SINCE", dayjs().subtract(1, "day").format("DD-MMM-YYYY")]],
-                (err, results) => {
-                    if (err) throw err;
-                    if (results.length > 0) {
-                        const f = this.imap.fetch(results, { bodies: "" });
-                        f.on("message", this.handleNewMessage);
-                        f.once("error", (err) => console.log("Fetch error: " + err));
-                        f.once("end", () => console.log("Done fetching all messages!"));
-                    }
-                },
-            );
+            if (err)
+                throw err;
+            this.imap.search(["UNSEEN", ["SINCE", (0, dayjs_1.default)().subtract(1, "day").format("DD-MMM-YYYY")]], (err, results) => {
+                if (err)
+                    throw err;
+                if (results.length > 0) {
+                    const f = this.imap.fetch(results, { bodies: "" });
+                    f.on("message", this.handleNewMessage);
+                    f.once("error", (err) => console.log("Fetch error: " + err));
+                    f.once("end", () => console.log("Done fetching all messages!"));
+                }
+            });
         });
     };
-
-    private handleReady = () => {
+    handleReady = () => {
         this.openInbox((err, box) => {
-            if (err) throw err;
+            if (err)
+                throw err;
             console.log(`You have ${box.messages.total} message(s)`);
             this.imap.on("mail", (numNewMsgs) => {
                 console.log(`You hav e ${numNewMsgs} new message(s)`);
@@ -281,8 +273,7 @@ export default class EmailService {
             });
         });
     };
-
-    public init = async () => {
+    init = async () => {
         this.imap.once("ready", this.handleReady);
         this.imap.once("error", () => {
             this.imap.end();
@@ -291,9 +282,7 @@ export default class EmailService {
             console.log("Connection ended");
             this.imap.connect();
         });
-
         this.imap.connect();
     };
-
-
 }
+exports.default = EmailService;

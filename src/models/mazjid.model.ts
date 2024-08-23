@@ -2,6 +2,7 @@ import mongoose, { Schema, model } from "mongoose";
 import RegexValidator from "../constants/regex.constant";
 
 export interface IMasjid extends mongoose.Document {
+  _id: mongoose.Types.ObjectId;
   masjidName: string;
   masjidProfilePhoto: string;
   description: string;
