@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
-import { fetchEmails } from "../services/emailService";
+import EmailProcessor from "../services/emailService";
 import { logger } from "../utils/logger";
 
 export const getEmails = async (req: Request, res: Response) => {
   try {
-    const websites = await fetchEmails(); 
-    logger.info("Emails fetched successfully | getEmails accessed");
+    const emailProcessor = new EmailProcessor();
+    const websites = await emailProcessor.fetchEmails();
+    logger.info("Emails fetched successfully | getEmails func accessed");
 
     if (websites.length > 0) {
       res.status(200).json({ websites });
